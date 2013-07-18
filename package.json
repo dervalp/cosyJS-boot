@@ -1,0 +1,9 @@
+{
+  "name": "cosy-client",
+  "version": "0.0.0",
+  "description": "bootstrap COSY Application",
+  "main": "cosy.js",
+  "repository": "",
+  "author": "dervalp",
+  "license": "MIT"
+}
