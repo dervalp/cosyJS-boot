@@ -1,11 +1,11 @@
 #cosy-boot
 
+This library is used client side and by cosy-core in order to register and expose components.
+
 ##Purpose
 
-This library is responsible for registering the Component in the right order.
-The idea is that you have modules and inside modules, you have component.
-
-When the page is being parsed the it should create a flat list of all Modules which each module should have a flat list of all Components.
+This library is responsible for registering components and module on a page.
+It supports nested modules and nested apps.
 
 ###Basic Cases
 

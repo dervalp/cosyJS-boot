@@ -1,15 +1,6 @@
 module.exports = function( grunt ) {
 
   grunt.initConfig( {
-    watch: {
-      scripts: {
-        files: [ "/lib/cosy.js" ],
-        tasks: [ "jshint", "shell" ],
-        options: {
-          livereload: true
-        },
-      },
-    },
     shell: {
       test: {
         command: "npm test",
@@ -47,6 +38,4 @@ module.exports = function( grunt ) {
   grunt.loadNpmTasks( "grunt-shell-spawn" );
 
   grunt.registerTask( "default", [ "jshint", "shell" ] );
-  grunt.registerTask( "dev", [ "watch" ] );
-
 };
