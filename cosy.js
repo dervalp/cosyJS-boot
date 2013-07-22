@@ -3,12 +3,15 @@
 
     var root = root,
         apps = [ ],
+        isBrowser = typeof window !== 'undefined',
         t = {},
-        TYPE = "sc-type",
-        ID = "sc-id",
+        __cosy_defered = root.__cosy_defered,
+        TYPE = "cosy-type",
+        ID = "cosy-id",
+        APP_KEY = "app",
         ATTR_TYPE = "[" + TYPE + "]",
         ATTR_ID = "[" + ID + "]",
-        ATTR_APP = "[sc-app]",
+        ATTR_APP = "[" + APP_KEY + "]",
         components = {},
         nativeForEach = Array.prototype.forEach,
         toArray = function( obj ) {
@@ -48,10 +51,10 @@
         parseApps = function( callback ) {
             var els = toArray( document.querySelectorAll( ATTR_APP ) );
 
-            //var i = Array.prototype.indexOf.call( e.childNodes, someChildEl );
             els.forEach( function( el ) {
                 apps.push( {
                     el: el,
+                    name: el.getAttribute( APP_KEY ),
                     depth: getDepth( el )
                 } );
             } );
@@ -59,7 +62,8 @@
             callback( els );
         },
         fetchComps = function( callback ) {
-            var els = toArray( document.querySelectorAll( ATTR_TYPE ) ),
+            var keys,
+                els = toArray( document.querySelectorAll( ATTR_TYPE ) ),
                 comps = els.map( compAttributes );
 
             comps.forEach( function( c ) {
@@ -68,7 +72,11 @@
                 }
             } );
 
-            attachScript( buildModRequest( Object.keys( t ) ), callback );
+            keys = Object.keys( t );
+
+            if ( keys.length > 0 ) {
+                _c.attach( buildModRequest( keys ), callback );
+            }
         },
         buildModRequest = function( types ) {
             var request = "comp.js?mod=[",
@@ -95,10 +103,24 @@
             return 0;
         },
         exposeComp = function( comp, app ) {
-            app[ comp.id ] = components[ comp.type ].initialize( comp.el );
+            //if already registered
+            if ( comp.el.__cosy ) {
+                return;
+            }
+
+            var def = components[ comp.type ],
+                init = def.initialize;
+
+            if ( def.adapter ) {
+                init = _c.adapters[ def.adapter ];
+            }
+
+            app[ comp.id ] = init( comp.el );
+            comp.el.__cosy = true;
         },
         exposeApp = function( app ) {
-            var components = toArray( document.querySelectorAll( ATTR_TYPE ) ),
+            console.log( app );
+            var components = toArray( app.el.querySelectorAll( ATTR_TYPE ) ),
                 comps = components.map( function( el ) {
                     return {
                         el: el,
@@ -112,7 +134,23 @@
             } );
         },
         component = function( comp ) {
+            if ( !comp || !comp.type ) {
+                throw "should have at least a type";
+            }
+
             components[ comp.type ] = comp;
+        },
+        init = function( cb ) {
+            fetchComps( function( ) {
+                parseApps( function( ) {
+
+                    apps.sort( byDepth ).reverse( ).forEach( exposeApp );
+
+                    if ( cb ) {
+                        cb( );
+                    }
+                } );
+            } );
         };
 
     //public API
@@ -120,10 +158,27 @@
         component: component
     };
 
-    parseApps( function( ) {
-        fetchComps( function( ) {
-            apps.sort( byDepth ).reverse( ).forEach( exposeApp );
+    if ( typeof exports !== 'undefined' ) {
+        _c = exports;
+    } else {
+        _c = root._c = {};
+    }
+    //public API
+    _c.components = components;
+    _c.component = component;
+    _c.expose = exposeComp;
+    _c.init = init;
+    //for testing purpose
+    _c.attach = attachScript;
+
+    _c.apps = function( ) {
+        return apps.map( function( app ) {
+            return app.name;
         } );
-    } );
+    };
+
+    if ( isBrowser && !__cosy_defered ) {
+        init( );
+    }
 
 }( this );

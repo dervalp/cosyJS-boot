@@ -1,0 +1,42 @@
+<html>
+    <head>
+        <title> Test Case Number 1</title>
+        <link rel="stylesheet" href="../../node_modules/mocha/mocha.css" />
+    </head>
+    <body>
+        <div id="mocha"></div>
+        <div app="test">
+            Some Test App
+            <div cosy-type="test" cosy-id="Test1">
+                Test
+            </div>
+            <div cosy-type="test" cosy-id="Test2">
+                Test2
+            </div>
+        </div>
+         <div app="test2">
+            Some Test App
+            <div cosy-type="test" cosy-id="Test1">
+                Test
+            </div>
+            <div cosy-type="test" cosy-id="Test2">
+                Test2
+            </div>
+        </div>
+        <script src="../../node_modules/mocha/mocha.js"></script>
+        <script src="../../node_modules/chai/chai.js"></script>
+        <script src="../../node_modules/sinon/pkg/sinon-1.7.3.js"></script>
+        <script>
+            mocha.ui('bdd'); 
+            mocha.reporter('html');
+            var __cosy_defered = true;
+            var should = chai.should();
+        </script>
+        <script src="../../cosy.js"></script>
+        <script src="test.js"></script>
+        <script>
+            if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
+            else { mocha.run(); }
+        </script>
+    </body>
+</html>
