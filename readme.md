@@ -9,18 +9,23 @@ When the page is being parsed the it should create a flat list of all Modules wh
 
 ###Basic Cases
 
+´´´javascript
 ####One module, one component
 -
 |-- MODULE
     |---- COMPONENT
+´´´
 
+´´´javascript
 ####1 module, 2 components
 -
 |-- MODULE
     |---- COMPONENT
     |
     |---- COMPONENT
+´´´
 
+´´´javascript
 ####2 Modules, 2 components
 -
 |-- MODULE
@@ -32,9 +37,10 @@ When the page is being parsed the it should create a flat list of all Modules wh
     |---- COMPONENT
     |
     |---- COMPONENT
+´´´
 
 ###Nested Cases
-
+´´´javascript
 ####3 Modules (one nested), 2 components each
 -
 |-- MODULE
@@ -53,7 +59,9 @@ When the page is being parsed the it should create a flat list of all Modules wh
         |---- COMPONENT
         |
         |---- COMPONENT
+´´´
 
+´´´javascript
 ####3 Modules (all nested), 2 components each
 -
 |-- MODULE
@@ -72,10 +80,11 @@ When the page is being parsed the it should create a flat list of all Modules wh
             |---- COMPONENT
             |
             |---- COMPONENT
-
+´´´
 ###Nested Components Cases
-
+´´´javascript
 -
 |-- MODULE
     |---- COMPONENT
             |---- COMPONENT
+´´´
