@@ -11,6 +11,13 @@
     "mocha-phantomjs": "~3.1.0",
     "phantomjs": "~1.9.1-0",
     "chai": "~1.7.2",
-    "sinon": "~1.7.3"
+    "sinon": "~1.7.3",
+    "grunt": "~0.4.1",
+    "grunt-shell-spawn": "~0.2.4",
+    "grunt-contrib-watch": "~0.5.1",
+    "grunt-contrib-jshint": "~0.6.0"
+  },
+  "scripts": {
+    "test": "mocha --recursive"
   }
 }

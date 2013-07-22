@@ -16,7 +16,7 @@ describe( "Given cosy boostrap", function( ) {
     } );
     it( "should have a list of component", function( ) {
         ( function( ) {
-            cosy.component( )
+            cosy.component( );
         } ).should.
         throw ( );
     } );

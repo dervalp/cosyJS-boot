@@ -1,9 +1,8 @@
 ! function( root ) {
     "use strict";
 
-    var root = root,
-        apps = [ ],
-        isBrowser = typeof window !== 'undefined',
+    var apps = [ ],
+        isBrowser = typeof window !== "undefined",
         t = {},
         __cosy_defered = root.__cosy_defered,
         TYPE = "cosy-type",
@@ -17,7 +16,6 @@
         toArray = function( obj ) {
             var array = [ ],
                 i = obj.length >>> 0; // ensure that length is an Uint32
-            // iterate backwards
             while ( i-- ) {
                 array[ i ] = obj[ i ];
             }
@@ -46,7 +44,7 @@
             script.src = url;
             script.onload = cb;
             script.onerror = scriptLoadError;
-            ( document.head || document.getElementsByTagName( 'head ' )[ 0 ] ).appendChild( script );
+            ( document.head || document.getElementsByTagName( "head" )[ 0 ] ).appendChild( script );
         },
         parseApps = function( callback ) {
             var els = toArray( document.querySelectorAll( ATTR_APP ) );
@@ -93,13 +91,15 @@
                 el: el,
                 id: id,
                 type: type
-            }
+            };
         },
         byDepth = function compare( a, b ) {
-            if ( a.depth < b.depth )
+            if ( a.depth < b.depth ) {
                 return -1;
-            if ( a.depth > b.depth )
+            }
+            if ( a.depth > b.depth ) {
                 return 1;
+            }
             return 0;
         },
         exposeComp = function( comp, app ) {
@@ -126,7 +126,7 @@
                         el: el,
                         depth: getDepth( el ),
                         type: el.getAttribute( TYPE )
-                    }
+                    };
                 } );
 
             comps.sort( byDepth ).reverse( ).forEach( function( comp ) {
@@ -158,7 +158,7 @@
         component: component
     };
 
-    if ( typeof exports !== 'undefined' ) {
+    if ( typeof exports !== "undefined" ) {
         _c = exports;
     } else {
         _c = root._c = {};
