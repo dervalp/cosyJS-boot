@@ -1,4 +1,4 @@
-describe( "Given a Page with one App which has 1 component", function( ) {
+describe( "Given 1 Page with 2 Apps which has 2 components", function( ) {
     var callInit = sinon.spy( ),
         fakeAttach = function( url, cb ) {
             _c.component( {
@@ -13,10 +13,13 @@ describe( "Given a Page with one App which has 1 component", function( ) {
         _c.init( done );
     } );
     it( "should have 2 apps registered", function( ) {
-        _c.apps( ).length.should.equal( 2 );
+        _c.modules( ).length.should.equal( 2 );
     } );
     it( "should have one component register", function( ) {
         Object.keys( _c.components ).length.should.equal( 1 );
+    } );
+    it( "should have one component register", function( ) {
+        _c.modules( [ "test" ], [ "test1" ] ).length.should.equal( 2 );
     } );
     it( "should have initialize 4 components", function( ) {
         callInit.callCount.should.be.equal( 4 );

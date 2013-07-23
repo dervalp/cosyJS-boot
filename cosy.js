@@ -4,7 +4,9 @@
     var apps = [ ],
         isBrowser = typeof window !== "undefined",
         t = {},
-        __cosy_defered = root.__cosy_defered,
+        adapterCaches,
+        config = root.__cosy_config || {},
+        deferred = config.deferred,
         TYPE = "cosy-type",
         ID = "cosy-id",
         APP_KEY = "app",
@@ -13,6 +15,7 @@
         ATTR_APP = "[" + APP_KEY + "]",
         components = {},
         nativeForEach = Array.prototype.forEach,
+        bootstrapValues = isBrowser ? config.conf : {},
         toArray = function( obj ) {
             var array = [ ],
                 i = obj.length >>> 0; // ensure that length is an Uint32
@@ -59,6 +62,19 @@
 
             callback( els );
         },
+        getInitialValue = function( comp ) {
+            var init = bootstrapValues[ comp.id ];
+            if ( !init ) {
+                return comp;
+            } else {
+                for ( var i in comp ) {
+                    if ( comp.hasOwnProperty( i ) ) {
+                        init[ i ] = comp[ i ];
+                    }
+                }
+                return init;
+            }
+        },
         fetchComps = function( callback ) {
             var keys,
                 els = toArray( document.querySelectorAll( ATTR_TYPE ) ),
@@ -84,13 +100,11 @@
             return request + mod.join( "," ) + end;
         },
         compAttributes = function( el ) {
-            var id = el.getAttribute( ID ),
-                type = el.getAttribute( TYPE );
-
             return {
                 el: el,
-                id: id,
-                type: type
+                id: el.getAttribute( ID ),
+                depth: getDepth( el ),
+                type: el.getAttribute( TYPE )
             };
         },
         byDepth = function compare( a, b ) {
@@ -109,25 +123,20 @@
             }
 
             var def = components[ comp.type ],
+                initial = getInitialValue( comp ),
                 init = def.initialize;
 
-            if ( def.adapter ) {
-                init = _c.adapters[ def.adapter ];
+            if ( def.adapter && !adapterCaches[ def.adapter ] ) {
+                init = adapterCaches[ def.adapter ] = _c.adapters[ def.adapter ];
             }
 
-            app[ comp.id ] = init( comp.el );
+            app[ comp.id ] = init( comp.el, initial, app );
             comp.el.__cosy = true;
         },
         exposeApp = function( app ) {
-            console.log( app );
+
             var components = toArray( app.el.querySelectorAll( ATTR_TYPE ) ),
-                comps = components.map( function( el ) {
-                    return {
-                        el: el,
-                        depth: getDepth( el ),
-                        type: el.getAttribute( TYPE )
-                    };
-                } );
+                comps = components.map( compAttributes );
 
             comps.sort( byDepth ).reverse( ).forEach( function( comp ) {
                 exposeComp( comp, app );
@@ -171,13 +180,26 @@
     //for testing purpose
     _c.attach = attachScript;
 
-    _c.apps = function( ) {
-        return apps.map( function( app ) {
-            return app.name;
+    _c.modules = function( name ) {
+        var result;
+        if ( !name ) {
+            return apps.map( function( app ) {
+                return app;
+            } );
+        }
+
+        result = apps.map( function( app ) {
+            return ( !! ~name.indexOf( app.name ) ) ? app : null;
         } );
+
+        if ( name.toString( ) == '[object Array]' ) {
+            return result;
+        }
+
+        return ( result && result.length === 1 ) ? result[ 0 ] : null;
     };
 
-    if ( isBrowser && !__cosy_defered ) {
+    if ( isBrowser && !deferred ) {
         init( );
     }
 

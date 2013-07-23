@@ -14,7 +14,7 @@ describe( "Given a Page with one App which has 1 component", function( ) {
 
     } );
     it( "should have 3 apps registered", function( ) {
-        _c.apps( ).length.should.equal( 3 );
+        _c.modules( ).length.should.equal( 3 );
     } );
     it( "should have one component register", function( ) {
         Object.keys( _c.components ).length.should.equal( 1 );

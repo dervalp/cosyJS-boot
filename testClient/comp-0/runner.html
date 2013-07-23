@@ -20,7 +20,10 @@
         <script>
             mocha.ui('bdd'); 
             mocha.reporter('html');
-            var __cosy_defered = true;
+            var __cosy_config = {
+                deferred: true,
+                conf: []
+            };
             var should = chai.should();
         </script>
         <script src="../../cosy.js"></script>

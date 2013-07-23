@@ -3,7 +3,13 @@ describe( "Given a Page with one App which has 1 component", function( ) {
         fakeAttach = function( url, cb ) {
             _c.component( {
                 type: "test",
-                initialize: callInit
+                initialize: function( el, init ) {
+                    callInit( );
+                    return {
+                        el: el,
+                        init: init
+                    };
+                }
             } );
             cb( );
         };
@@ -33,10 +39,19 @@ describe( "Given a Page with one App which has 1 component", function( ) {
         throw ( );
     } );
     it( "should have an app registered", function( ) {
-        _c.apps( ).length.should.equal( 1 );
+        _c.modules( ).length.should.equal( 1 );
     } );
     it( "should have one component register", function( ) {
         Object.keys( _c.components ).length.should.equal( 1 );
+    } );
+    it( "should have one component register and called test", function( ) {
+        _c.modules( )[ 0 ].Test1.should.exists;
+    } );
+    it( "should find module test", function( ) {
+        _c.modules( "test" ).should.exists;
+    } );
+    it( "should have initialized the component with bootstrap values", function( ) {
+        _c.modules( "test" ).Test1.init.toto.should.equal( "toto" );
     } );
     it( "should have initialize 1 component", function( ) {
         callInit.callCount.should.be.equal( 1 );
