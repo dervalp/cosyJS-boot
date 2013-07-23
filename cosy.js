@@ -13,6 +13,7 @@
         ATTR_TYPE = "[" + TYPE + "]",
         ATTR_ID = "[" + ID + "]",
         ATTR_APP = "[" + APP_KEY + "]",
+        nativeIsArray = Array.isArray,
         components = {},
         nativeForEach = Array.prototype.forEach,
         bootstrapValues = isBrowser ? config.conf : {},
@@ -192,7 +193,7 @@
             return ( !! ~name.indexOf( app.name ) ) ? app : null;
         } );
 
-        if ( name.toString( ) == '[object Array]' ) {
+        if ( nativeIsArray( name ) ) {
             return result;
         }
 
