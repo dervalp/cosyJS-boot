@@ -1,3 +1,5 @@
+var glob = require( "glob" );
+
 module.exports = function( grunt ) {
 
   grunt.initConfig( {
@@ -45,5 +47,22 @@ module.exports = function( grunt ) {
   grunt.loadNpmTasks( "grunt-shell-spawn" );
   grunt.loadNpmTasks( "grunt-contrib-uglify" );
 
-  grunt.registerTask( "default", [ "jshint", "shell", "uglify:cosy" ] );
+  grunt.registerTask( "clientTest", "Running mocha js for all the deps", function( ) {
+
+    var files = glob.sync( "testClient/**/*.html" );
+
+    var count = 0;
+    files.forEach( function( file ) {
+
+      var property = "shell.cl" + count + ".command";
+      grunt.config( property, "mocha-phantomjs " + file );
+
+      count++;
+    } );
+
+    grunt.task.run( "shell" );
+
+  } );
+
+  grunt.registerTask( "default", [ "jshint", "clientTest", "uglify:cosy" ] );
 };

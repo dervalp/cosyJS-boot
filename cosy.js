@@ -16,7 +16,8 @@
         nativeIsArray = Array.isArray,
         components = {},
         nativeForEach = Array.prototype.forEach,
-        bootstrapValues = isBrowser ? config.conf : {},
+        bootstrapValues = ( isBrowser && config.conf ) ? config.conf : {},
+        ctrls = config.controllers ? config.controllers : [ ],
         toArray = function( obj ) {
             var array = [ ],
                 i = obj.length >>> 0; // ensure that length is an Uint32
@@ -93,12 +94,13 @@
                 _c.attach( buildModRequest( keys ), callback );
             }
         },
-        buildModRequest = function( types ) {
-            var request = "comp.js?mod=[",
+        buildModRequest = function( types, type ) {
+            var request = "comp.js?",
+                start = "=[",
                 end = "]",
-                mod = types;
+                mod = type ? type : "mode";
 
-            return request + mod.join( "," ) + end;
+            return request + mod + types.join( "," ) + end;
         },
         compAttributes = function( el ) {
             return {
@@ -150,15 +152,26 @@
 
             components[ comp.type ] = comp;
         },
+        loadCtrl = function( cb ) {
+            if ( ctrls.length > 0 ) {
+                _c.attach( buildModRequest( ctrls, "ctrl" ), cb );
+            } else {
+                cb( );
+            }
+        },
+        registerCtrl = function( name, content ) {
+            var module = _c.modules( name );
+
+            if ( _.isFunction( content ) ) {
+                return content.call( module );
+            }
+        },
         init = function( cb ) {
             fetchComps( function( ) {
                 parseApps( function( ) {
 
                     apps.sort( byDepth ).reverse( ).forEach( exposeApp );
-
-                    if ( cb ) {
-                        cb( );
-                    }
+                    loadCtrl( cb );
                 } );
             } );
         };
@@ -180,9 +193,11 @@
     _c.init = init;
     //for testing purpose
     _c.attach = attachScript;
+    _c.controller = registerCtrl;
 
     _c.modules = function( name ) {
         var result;
+
         if ( !name ) {
             return apps.map( function( app ) {
                 return app;
