@@ -1,5 +1,7 @@
 #cosy-boot
 
+[![Build Status](https://travis-ci.org/dervalp/cosyJS-boot.png?branch=master)](https://travis-ci.org/dervalp/cosyJS-boot)
+
 This library is used client side and by cosy-core in order to register and expose components.
 
 ##Purpose
