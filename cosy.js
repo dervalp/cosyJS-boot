@@ -1,7 +1,8 @@
 ! function( root ) {
     "use strict";
 
-    var apps = [ ],
+    var _c,
+        apps = [ ],
         isBrowser = typeof window !== "undefined",
         t = {},
         adapterCaches,
@@ -175,11 +176,6 @@
                 } );
             } );
         };
-
-    //public API
-    var _c = root._c = {
-        component: component
-    };
 
     if ( typeof exports !== "undefined" ) {
         _c = exports;
