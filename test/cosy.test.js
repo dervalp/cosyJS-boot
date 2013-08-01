@@ -1,8 +1,6 @@
 var cosy = require( "../cosy" ),
     should = require( "should" );
 
-console.log( cosy );
-console.log( "!!!!" )
 describe( "Given cosy boostrap", function( ) {
     it( "should be defined", function( ) {
         cosy.should.exists;

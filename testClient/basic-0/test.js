@@ -3,11 +3,11 @@ describe( "Given a Page with one App which has 1 component", function( ) {
         fakeAttach = function( url, cb ) {
             _c.component( {
                 type: "test",
-                initialize: function( el, init ) {
+                initialize: function( initial, app, el ) {
                     callInit( );
                     return {
                         el: el,
-                        init: init
+                        init: initial
                     };
                 }
             } );
@@ -16,9 +16,7 @@ describe( "Given a Page with one App which has 1 component", function( ) {
 
     before( function( done ) {
         sinon.stub( _c, "attach", fakeAttach );
-
         _c.init( done );
-
     } );
     it( "cosy should be defined", function( ) {
         _c.should.exist;
@@ -50,10 +48,10 @@ describe( "Given a Page with one App which has 1 component", function( ) {
     it( "should find module test", function( ) {
         _c.modules( "test" ).should.exists;
     } );
-    it( "should have initialized the component with bootstrap values", function( ) {
-        _c.modules( "test" ).Test1.init.toto.should.equal( "toto" );
-    } );
     it( "should have initialize 1 component", function( ) {
         callInit.callCount.should.be.equal( 1 );
+    } );
+    it( "should have initialized the component with bootstrap values", function( ) {
+        _c.modules( "test" ).Test1.init.toto.should.equal( "toto" );
     } );
 } )

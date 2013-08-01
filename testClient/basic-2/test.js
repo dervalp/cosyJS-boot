@@ -3,7 +3,10 @@ describe( "Given 1 Page with 2 Apps which has 2 components", function( ) {
         fakeAttach = function( url, cb ) {
             _c.component( {
                 type: "test",
-                initialize: callInit
+                initialize: function( init ) {
+                    callInit( );
+                    return init;
+                }
             } );
             cb( );
         };

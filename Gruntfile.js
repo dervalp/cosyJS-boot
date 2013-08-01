@@ -14,9 +14,12 @@ module.exports = function( grunt ) {
     uglify: {
       cosy: {
         files: {
-          "cosy.min.js": [ "cosy.js" ]
+          "c.min.js": [ "c.js" ]
         }
       }
+    },
+    browserify: {
+      "c.js": [ "cosy.js" ]
     },
     jshint: {
       all: [ "Gruntfile.js", "cosy.js", "test/**/*.js" ],
@@ -42,6 +45,7 @@ module.exports = function( grunt ) {
     }
   } );
 
+  grunt.loadNpmTasks( "grunt-browserify" );
   grunt.loadNpmTasks( "grunt-contrib-jshint" );
   grunt.loadNpmTasks( "grunt-contrib-watch" );
   grunt.loadNpmTasks( "grunt-shell-spawn" );
@@ -64,5 +68,5 @@ module.exports = function( grunt ) {
 
   } );
 
-  grunt.registerTask( "default", [ "jshint", "clientTest", "uglify:cosy" ] );
+  grunt.registerTask( "default", [ "browserify", "jshint", "clientTest", "uglify:cosy" ] );
 };
