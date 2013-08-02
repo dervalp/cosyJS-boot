@@ -19,12 +19,12 @@ module.exports = {
         console.log( __dirname )
         console.log( "___" )
 
-        config.log( process.cwd( ) );
+        console.log( process.cwd( ) );
 
         if ( config.min ) {
-            cosyPath = path.normalize( dir + "\\" + "c.min.js" );
+            cosyPath = path.normalize( dir + "/" + "c.min.js" );
         } else {
-            cosyPath = path.normalize( dir + "\\" + "c.js" );
+            cosyPath = path.normalize( dir + "/" + "c.js" );
         }
 
         fs.readFile( cosyPath, "utf8", cb );
