@@ -13,9 +13,9 @@ module.exports = {
         }
 
         if ( config.min ) {
-            cosyPath = __dirname + "\\" + "c.min.js";
+            cosyPath = path.normalize( __dirname + "\\" + "c.min.js" );
         } else {
-            cosyPath = __dirname + "\\" + "c.js";
+            cosyPath = path.normalize( __dirname + "\\" + "c.js" );
         }
 
         fs.readFile( cosyPath, "utf8", cb );
