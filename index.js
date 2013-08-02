@@ -13,14 +13,6 @@ module.exports = {
             cb = config;
         }
 
-        console.log( dir );
-        console.log( "___" )
-
-        console.log( __dirname )
-        console.log( "___" )
-
-        console.log( process.cwd( ) );
-
         if ( config.min ) {
             cosyPath = path.normalize( dir + "/" + "c.min.js" );
         } else {
