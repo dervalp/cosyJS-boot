@@ -1,4 +1,5 @@
 var path = require( "path" ),
+    dir = __dirname,
     fs = require( "fs" );
 
 module.exports = {
@@ -13,9 +14,10 @@ module.exports = {
         }
 
         if ( config.min ) {
-            cosyPath = path.normalize( __dirname + "\\" + "c.min.js" );
+            console.log( dir );
+            cosyPath = path.normalize( dir + "\\" + "c.min.js" );
         } else {
-            cosyPath = path.normalize( __dirname + "\\" + "c.js" );
+            cosyPath = path.normalize( dir + "\\" + "c.js" );
         }
 
         fs.readFile( cosyPath, "utf8", cb );
