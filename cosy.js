@@ -170,12 +170,12 @@ var handlebars = require( "handlebars" );
             }
         },
         buildModRequest = function( types, type ) {
-            var request = "comp.js?",
+            var request = "/cosy/load/",
                 start = "=[",
                 end = "]",
-                mod = type ? type : "mode";
+                mod = type ? type : "comp";
 
-            return request + start + mod + types.join( "," ) + end;
+            return request + mod + ".js?mod" + start + types.join( "," ) + end;
         },
         compAttributes = function( el ) {
             return {
@@ -194,6 +194,29 @@ var handlebars = require( "handlebars" );
             }
             return 0;
         },
+        inerits = function( init ) {
+            var child = function( ) {
+                return Component.apply( this, arguments );
+            };
+            extend( child, Component );
+
+            var Surrogate = function( ) {
+                this.constructor = child;
+            };
+
+            Surrogate.prototype = Component.prototype;
+            child.prototype = new Surrogate( );
+
+            child.prototype.initialize = init;
+            child.__super__ = Component.prototype;
+
+            return child;
+
+        },
+        iniheritInit = function( init, initial, app, el ) {
+            var Comp = inerits( init );
+            return new Comp( initial, app, el );
+        },
         Component = function( initial, app, el ) {
             for ( var i in initial ) {
                 if ( initial.hasOwnProperty( i ) ) {
@@ -204,7 +227,7 @@ var handlebars = require( "handlebars" );
             //this.id = initial.id;
             //this.type = initial.type;
             //this.placeholder = initial.placeholder;
-
+            this.initialize.apply( this, arguments );
             //this.data = initial;
             if ( isBrowser ) {
                 this.el = el;
@@ -244,7 +267,11 @@ var handlebars = require( "handlebars" );
                 result.render = ( adapt.render ) ? adapt.render : render;
                 result.serialize = ( adapt.serialize ) ? adapt.serialize : undefined;
             } else {
-                result = init( initial, app, comp.el );
+                if ( init ) {
+                    result = iniheritInit( init, initial, app, comp.el );
+                } else {
+                    result = defaultInit( initial, app, comp.el );
+                }
             }
 
             if ( isBrowser ) {
