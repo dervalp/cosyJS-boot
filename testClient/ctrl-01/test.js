@@ -10,10 +10,6 @@ describe( "Given a Page with one App which has 1 component", function( ) {
                 type: "test",
                 initialize: function( el, init ) {
                     callInit( );
-                    return {
-                        el: el,
-                        init: init
-                    };
                 }
             } );
             stubCompLoaded.restore( );

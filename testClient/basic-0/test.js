@@ -5,6 +5,9 @@ describe( "Given a Page with one App which has 1 component", function( ) {
                 type: "test",
                 initialize: function( initial, app, el ) {
                     callInit( );
+                },
+                doSomething: function( ) {
+                    alert( "toto" );
                 }
             } );
             cb( );
@@ -50,6 +53,6 @@ describe( "Given a Page with one App which has 1 component", function( ) {
     it( "should have initialized the component with bootstrap values", function( ) {
 
         _c.modules( "test" ).Test1.toto.should.equal( "toto" );
-
+        _c.modules( "test" ).Test1.doSomething.should.exist;
     } );
 } )

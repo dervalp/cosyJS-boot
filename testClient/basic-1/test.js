@@ -5,7 +5,6 @@ describe( "Given a Page with one App which has 1 component", function( ) {
                 type: "test",
                 initialize: function( init ) {
                     callInit( );
-                    return init;
                 }
             } );
             cb( );

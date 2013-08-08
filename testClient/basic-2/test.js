@@ -5,7 +5,6 @@ describe( "Given 1 Page with 2 Apps which has 2 components", function( ) {
                 type: "test",
                 initialize: function( init ) {
                     callInit( );
-                    return init;
                 }
             } );
             cb( );

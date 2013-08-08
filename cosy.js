@@ -194,7 +194,7 @@ var handlebars = require( "handlebars" );
             }
             return 0;
         },
-        inerits = function( init ) {
+        inherits = function( init, proto ) {
             var child = function( ) {
                 return Component.apply( this, arguments );
             };
@@ -208,13 +208,21 @@ var handlebars = require( "handlebars" );
             child.prototype = new Surrogate( );
 
             child.prototype.initialize = init;
+            if ( proto ) {
+                for ( var i in proto ) {
+                    if ( proto.hasOwnProperty( i ) ) {
+                        child.prototype[ i ] = proto[ i ];
+                    }
+                }
+            }
+
             child.__super__ = Component.prototype;
 
             return child;
 
         },
-        iniheritInit = function( init, initial, app, el ) {
-            var Comp = inerits( init );
+        iniheritInit = function( init, proto, initial, app, el ) {
+            var Comp = inherits( init, proto );
             return new Comp( initial, app, el );
         },
         Component = function( initial, app, el ) {
@@ -237,6 +245,18 @@ var handlebars = require( "handlebars" );
         },
         defaultInit = function( initial, app, el ) {
             return new Component( initial, app, el );
+        },
+        extractProto = function( def ) {
+            var protoprops = {};
+            for ( var i in def ) {
+                if ( def.hasOwnProperty( i ) ) {
+                    var proto = def[ i ];
+                    if ( typeof proto === "function" && i !== "initialize" ) {
+                        protoprops[ i ] = proto;
+                    }
+                }
+            }
+            return protoprops;
         },
         exposeComp = function( comp, app ) {
             //if already registered
@@ -268,7 +288,8 @@ var handlebars = require( "handlebars" );
                 result.serialize = ( adapt.serialize ) ? adapt.serialize : undefined;
             } else {
                 if ( init ) {
-                    result = iniheritInit( init, initial, app, comp.el );
+                    var proto = extractProto( def );
+                    result = iniheritInit( init, proto, initial, app, comp.el );
                 } else {
                     result = defaultInit( initial, app, comp.el );
                 }
@@ -506,10 +527,14 @@ var handlebars = require( "handlebars" );
     Component.prototype.serialize = function( ) {
         var result = {};
         for ( var i in this ) {
-            if ( i !== "template" && i !== "render" && i !== "serialize" && i !== "placeholder" && i !== "adapter" ) {
-                result[ i ] = this[ i ];
+            if ( i !== "template" && i !== "render" && i !== "serialize" && i !== "placeholder" && i !== "app" && i !== "adapter" ) {
+                var a = this[ i ];
+                if ( typeof a !== "function" ) {
+                    result[ i ] = a;
+                }
             }
         }
+        console.log( result );
         return result;
     };
 
