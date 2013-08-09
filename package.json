@@ -1,6 +1,6 @@
 {
   "name": "cosy-client",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "bootstrap COSY Application",
   "main": "index.js",
   "repository": "",
