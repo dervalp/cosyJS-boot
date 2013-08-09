@@ -523,6 +523,7 @@ var handlebars = require( "handlebars" );
     }
 
     //public API
+    Component.prototype.initialize = function( ) {};
     Component.prototype.render = defaultRender;
     Component.prototype.serialize = function( ) {
         var result = {};
