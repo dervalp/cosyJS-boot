@@ -19,11 +19,13 @@
             mocha.reporter('html');
             var __cosy_config = {
                 deferred: true,
-                conf: {
-                    "Test1": {
-                        "toto": "toto"
-                    }
-                }
+                conf: [
+                        {
+                            "id": "Test1",
+                            "type": "Test1",
+                            "toto": "toto"
+                        }
+                    ]
             };
 
             var should = chai.should();

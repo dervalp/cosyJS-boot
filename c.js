@@ -22,7 +22,7 @@ var handlebars = require( "handlebars" );
         components = {},
         arrayProto = Array.prototype,
         nativeForEach = arrayProto.forEach,
-        bootstrapValues = ( isBrowser && config.conf ) ? config.conf : {},
+        bootstrapValues = ( isBrowser && config.conf ) ? config.conf : [],
         ctrls = config.controllers ? config.controllers : [ ],
         idCounter = 0,
         uniqueId = function( prefix ) {
@@ -141,10 +141,16 @@ var handlebars = require( "handlebars" );
             callback( els );
         },
         getInitialValue = function( comp ) {
-            var init = bootstrapValues[ comp.id ];
-            if ( !init ) {
+
+            var init = bootstrapValues.filter(function(cmp) {
+                return cmp.id === comp.id;
+            });
+
+            if ( init.length === 0 ) {
                 return comp;
             } else {
+                init = init[0];
+
                 for ( var i in comp ) {
                     if ( comp.hasOwnProperty( i ) ) {
                         init[ i ] = comp[ i ];
@@ -266,7 +272,7 @@ var handlebars = require( "handlebars" );
                 return;
             }
 
-            var def = components[ comp.type ],
+            var def = components[ comp.type ] || {},
                 initial = getInitialValue( comp ),
                 init = def.initialize || defaultInit,
                 result,
@@ -542,6 +548,7 @@ var handlebars = require( "handlebars" );
 
     _c.components = components;
     _c.component = component;
+    _c.isBrowser = isBrowser;
     _c.expose = exposeComp;
     _c.template = template( );
     _c.tmpl = handlebars;
