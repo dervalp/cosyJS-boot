@@ -9,6 +9,7 @@ var handlebars = require( "handlebars" );
         root = isBrowser ? window : r,
         t = {},
         adapters = {},
+        plugins = {},
         config = root.__cosy_config || {},
         deferred = config.deferred,
         TYPE = "cosy-type",
@@ -133,7 +134,8 @@ var handlebars = require( "handlebars" );
                 apps.push( {
                     el: el,
                     name: el.getAttribute( APP_KEY ),
-                    depth: getDepth( el )
+                    depth: getDepth( el ),
+                    components: []
                 } );
             } );
 
@@ -200,20 +202,20 @@ var handlebars = require( "handlebars" );
             }
             return 0;
         },
-        inherits = function( init, proto ) {
+        inherits = function(base, init, proto ) {
             var child = function( ) {
-                return Component.apply( this, arguments );
+                return base.apply( this, arguments );
             };
-            extend( child, Component );
+            extend( child, base );
 
             var Surrogate = function( ) {
                 this.constructor = child;
             };
 
-            Surrogate.prototype = Component.prototype;
+            Surrogate.prototype = base.prototype;
             child.prototype = new Surrogate( );
 
-            child.prototype.initialize = init;
+            child.prototype.initialize = init || function( ) { };
             if ( proto ) {
                 for ( var i in proto ) {
                     if ( proto.hasOwnProperty( i ) ) {
@@ -222,94 +224,109 @@ var handlebars = require( "handlebars" );
                 }
             }
 
-            child.__super__ = Component.prototype;
+            child.__super__ = base.prototype;
 
             return child;
 
         },
-        iniheritInit = function( init, proto, initial, app, el ) {
-            var Comp = inherits( init, proto );
-            return new Comp( initial, app, el );
-        },
-        Component = function( initial, app, el ) {
-            for ( var i in initial ) {
-                if ( initial.hasOwnProperty( i ) ) {
-                    this[ i ] = initial[ i ];
+        initializeProperties = function(obj, properties) {
+            for ( var i in properties ) {
+                if ( properties.hasOwnProperty( i ) ) {
+                    obj[ i ] = properties[ i ];
                 }
             }
+        },
+        initializePlugins = function(initial, app, el) {
+            if(this.plugins) {
+                var plugin = plugins[this.plugins];
 
-            //this.id = initial.id;
-            //this.type = initial.type;
-            //this.placeholder = initial.placeholder;
-            this.initialize.apply( this, arguments );
-            //this.data = initial;
+                if(plugin && plugin.initialize) {
+                    plugin.initialize.apply(this, arguments);
+                }
+            }
+        },
+        exposePlugins = function( comp ) {
+            if(comp && comp.plugins) {
+                var plugin = plugins[comp.plugins];
+
+                if(plugin && plugin.expose) {
+                    plugin.expose.apply(this, arguments);
+                }
+            }
+        },
+        Component = function( initial, app, el ) {
+
+            initializeProperties(this, initial);
+
             if ( isBrowser ) {
                 this.el = el;
             }
 
             this.app = app;
-        },
-        defaultInit = function( initial, app, el ) {
-            return new Component( initial, app, el );
+
+            initializePlugins.apply( this, arguments);
+
+            this.initialize.apply( this, arguments );
         },
         extractProto = function( def ) {
             var protoprops = {};
             for ( var i in def ) {
                 if ( def.hasOwnProperty( i ) ) {
                     var proto = def[ i ];
-                    if ( typeof proto === "function" && i !== "initialize" ) {
+                    if ( typeof proto === "function" && i !== "initialize" && i !== "constructor" ) {
                         protoprops[ i ] = proto;
                     }
                 }
             }
             return protoprops;
         },
+        baseAdapters = {},
+        makeComponent = function(adapt, init, proto) {
+            var baseComp = Component;
+
+            if( adapt ) {
+                if( baseAdapters[adapt] ) {
+                    baseComp = baseAdapters[adapt];
+                } else {
+                    var adapter = adapters[ adapt ];
+
+                    if(adapter.constructor) {
+                        baseComp = adapter.constructor;
+                    }
+
+                    baseComp.prototype.render = ( adapter.render ) ? adapter.render : defaultRender;
+                    baseComp.prototype.serialize = ( adapter.serialize ) ? adapter.serialize : defaultSerialize;
+
+                    baseAdapters[adapt] = baseComp;
+                }
+            }
+
+            return inherits(baseComp, init, proto);
+        },
         exposeComp = function( comp, app ) {
             //if already registered
-
             if ( isBrowser && comp.el.__cosy ) {
                 return;
             }
 
             var def = components[ comp.type ] || {},
                 initial = getInitialValue( comp ),
-                init = def.initialize || defaultInit,
+                init = def.initialize,
+                proto = extractProto( def ),
                 result,
-                serialize,
-                model,
+                Component,
                 render = defaultRender;
 
-            if ( def.adapter ) {
-                var adapt = adapters[ def.adapter ];
+            Component = makeComponent(initial.adapter, init, proto);
 
-                if ( adapt.initialize ) {
-                    init = adapt.initialize;
-                }
-                if ( adapt.render ) {
-                    render = render;
-                }
-
-                result = init( initial, app, comp.el );
-                result.render = ( adapt.render ) ? adapt.render : render;
-                result.serialize = ( adapt.serialize ) ? adapt.serialize : undefined;
-            } else {
-                if ( init ) {
-                    var proto = extractProto( def );
-                    result = iniheritInit( init, proto, initial, app, comp.el );
-                } else {
-                    result = defaultInit( initial, app, comp.el );
-                }
-            }
+            result = new Component(initial, app, comp.el, _c);
 
             if ( isBrowser ) {
                 app[ comp.id ] = result;
-            }
-
-            if ( isBrowser ) {
+                app.components.push(result);
                 comp.el.__cosy = true;
             }
 
-            //resule alwya need
             result.placeholder = comp.placeholder;
             result.type = comp.type;
             result.name = comp.name;
@@ -323,9 +340,7 @@ var handlebars = require( "handlebars" );
             var components = toArray( app.el.querySelectorAll( ATTR_TYPE ) ),
                 comps = components.map( compAttributes );
 
-            comps.sort( byDepth ).reverse( ).forEach( function( comp ) {
-                exposeComp( comp, app );
-            } );
+            comps.sort( byDepth ).reverse( ).forEach( function(c) { exposeComp( c, app ); } );
         },
         component = function( comp ) {
             if ( !comp || !comp.type ) {
@@ -364,6 +379,9 @@ var handlebars = require( "handlebars" );
                 parseApps( function( ) {
 
                     apps.sort( byDepth ).reverse( ).forEach( exposeApp );
+                    apps.forEach( function(app) {
+                        app.components.forEach(exposePlugins);
+                    });
                     loadCtrl( cb );
                 } );
             } );
@@ -420,7 +438,6 @@ var handlebars = require( "handlebars" );
 
             var template = this.template || this.type || undefined;
 
-
             var data = ( self.serialize ) ? self.serialize( ) : self;
 
             /*if ( isBrowser && this.bindings ) {
@@ -430,10 +447,10 @@ var handlebars = require( "handlebars" );
                 if ( self.dynamic ) {
                     //var data = self.model.toJSON( );
 
+                    if ( extendObj ) {
+                        data.disabledBinding = true;
+                    }
 
-                    /*if ( extend ) {
-                data.disabledBinding = true;
-            }*/
                     toClient.push( data );
                 }
 
@@ -441,16 +458,18 @@ var handlebars = require( "handlebars" );
 
                 extendObj = extendObj || {};
 
-
                 if ( self.hasPlaceholder ) {
                     return callback( compiled, toClient );
                 }
-                //if ( isBrowser ) {
-                //    html = compiled( self.model.toJSON( ) );
-                //    self.$el.html( html );
-                //    for ( var ex in extend ) {
-                //        self.$el.find( "#" + ex ).html( extend[ ex ] );
-                //    }
+
+                if ( isBrowser ) {
+                    html = compiled( self.model.toJSON( ) );
+                    self.el.innerHTML = html;
+                    for ( var ex in extendObj ) {
+                        if(extendObj.hasOwnProperty(ex)) {
+                            self.el.querySelectorAll( "#" + ex ).innerHTML = extendObj[ ex ];
+                        }
+                    }
                 //if (self.model.attributes) {
                 //    if ( !data.disabledBinding && !self.model.get( "disabledBinding" ) ) {
                 //        self.bindings.build( );
@@ -458,15 +477,15 @@ var handlebars = require( "handlebars" );
                 //        self.bindings.sync( );
                 //    }
                 //}
-                //    if ( callback ) {
-                //        callback( self.$el.html( ), toClient );
-                //    }
-                //} else {
+                    if ( callback ) {
+                        callback( self.$el.html( ), toClient );
+                    }
+                } else {
 
-                html = compiled( extend( data, extendObj ) );
+                    html = compiled( extend( data, extendObj ) );
 
-                return callback( html, toClient );
-                // }
+                    return callback( html, toClient );
+                }
             };
 
             _c.template.get( template, function( tmplString ) {
@@ -493,35 +512,47 @@ var handlebars = require( "handlebars" );
 
                             var inst = _c.expose( initialData );
 
-                            /*if ( isBrowser ) {
-                    tmplString = tmplString.replace( regex, "<span id='" + id + "'></span>" );
-                } else {*/
-                            tmplString = tmplString.replace( regex, "{{{" + id + "}}}" );
-                            /*}*/
+                            if ( isBrowser ) {
+                                tmplString = tmplString.replace( regex, "<span id='" + id + "'></span>" );
+                            } else {
+                                tmplString = tmplString.replace( regex, "{{{" + id + "}}}" );
+                            }
 
-                            //var el = inst.view.$el;
+                            var el = inst.el;
 
                             inst.render( function( partialml, clientSide ) {
 
                                 toClient = toClient.concat( clientSide );
 
-                                /*if ( isBrowser ) {
-                        result[ id ] = el;
-                        cb( null, el );
-                    } else {*/
+                                if ( isBrowser ) {
+                                    result[ id ] = el;
+                                    cb( null, el );
+                                } else {
 
-                                result[ id ] = partialml;
-                                cb( null, partialml );
-                                /*}*/
+                                    result[ id ] = partialml;
+                                    cb( null, partialml );
+                                }
                             } );
                         },
                         function( err, final ) {
-
                             render( tmplString, result );
                         } );
                 }
             } );
             return self;
+        },
+        defaultSerialize = function( ) {
+            var result = {};
+            for ( var i in this ) {
+                if ( i !== "template" && i !== "render" && i !== "serialize" && i !== "placeholder" && i !== "app" ) {
+                    var a = this[ i ];
+                    if ( typeof a !== "function" ) {
+                        result[ i ] = a;
+                    }
+                }
+            }
+            console.log( result );
+            return result;
         };
 
     if ( module.exports ) {
@@ -531,22 +562,17 @@ var handlebars = require( "handlebars" );
     //public API
     Component.prototype.initialize = function( ) {};
     Component.prototype.render = defaultRender;
-    Component.prototype.serialize = function( ) {
-        var result = {};
-        for ( var i in this ) {
-            if ( i !== "template" && i !== "render" && i !== "serialize" && i !== "placeholder" && i !== "app" && i !== "adapter" ) {
-                var a = this[ i ];
-                if ( typeof a !== "function" ) {
-                    result[ i ] = a;
-                }
-            }
-        }
-        console.log( result );
-        return result;
-    };
+    Component.prototype.serialize = defaultSerialize;
 
     _c.components = components;
+    _c.adapters = adapters;
+    _c.plugins = plugins;
     _c.component = component;
+
+    _c.Component = Component;
+
+    _c.initializeProperties = initializeProperties;
+    _c.initializePlugins = initializePlugins;
     _c.isBrowser = isBrowser;
     _c.expose = exposeComp;
     _c.template = template( );
@@ -574,6 +600,9 @@ var handlebars = require( "handlebars" );
     _c.async.map = doParallel( _asyncMap );
     _c.adapter = function( name, obj ) {
         adapters[ name ] = obj;
+    };
+    _c.plugin = function( name, obj ) {
+        plugins[ name ] = obj;
     };
 
     //for testing purpose
