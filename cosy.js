@@ -21,7 +21,9 @@ var handlebars = require( "handlebars" );
         nativeIsArray = Array.isArray,
         components = {},
         arrayProto = Array.prototype,
+        nativeSlice = arrayProto.slice,
         nativeForEach = arrayProto.forEach,
+        functionType = "[object Function]",
         bootstrapValues = ( isBrowser && config.conf ) ? config.conf : [],
         ctrls = config.controllers ? config.controllers : [ ],
         idCounter = 0,
@@ -30,7 +32,7 @@ var handlebars = require( "handlebars" );
             return prefix ? prefix + id : id;
         },
         extend = function( obj ) {
-            Array.prototype.forEach.call( Array.prototype.slice.call( arguments, 1 ), function( source ) {
+            nativeForEach.call( nativeSlice.call( arguments, 1 ), function( source ) {
                 if ( source ) {
                     for ( var prop in source ) {
                         if ( source.hasOwnProperty( prop ) ) {
@@ -43,7 +45,7 @@ var handlebars = require( "handlebars" );
         },
         doParallel = function( fn ) {
             return function( ) {
-                var args = Array.prototype.slice.call( arguments );
+                var args = nativeSlice.call( arguments );
                 return fn.apply( null, [ _c.async.each ].concat( args ) );
             };
         },
@@ -79,6 +81,7 @@ var handlebars = require( "handlebars" );
         },
         _asyncMap = function( eachfn, arr, iterator, callback ) {
             var results = [ ];
+            //!!! Verify - wierd !!!
             arr = _.map( arr, function( x, i ) {
                 return {
                     index: i,
@@ -280,27 +283,21 @@ var handlebars = require( "handlebars" );
             }
             return protoprops;
         },
-        baseAdapters = {},
         makeComponent = function(adapt, init, proto) {
             var baseComp = Component;
 
             if( adapt ) {
-                if( baseAdapters[adapt] ) {
-                    baseComp = baseAdapters[adapt];
-                } else {
-                    var adapter = adapters[ adapt ];
+                var adapter = adapters[ adapt ];
 
-                    if(adapter.constructor) {
-                        baseComp = adapter.constructor;
-                    }
-
-                    baseComp.prototype.render = ( adapter.render ) ? adapter.render : defaultRender;
-                    baseComp.prototype.serialize = ( adapter.serialize ) ? adapter.serialize : defaultSerialize;
-
-                    baseAdapters[adapt] = baseComp;
+                if(adapter.constructor !== {}.constructor) {
+                    baseComp = adapter.constructor;
                 }
-            }
 
+                baseComp.prototype.initialize = (adapter.initialize) ? adapter.initialize : function() {};
+                baseComp.prototype.render = ( adapter.render ) ? adapter.render : defaultRender;
+                baseComp.prototype.serialize = ( adapter.serialize ) ? adapter.serialize : defaultSerialize;
+
+            }
             return inherits(baseComp, init, proto);
         },
         exposeComp = function( comp, app ) {
@@ -336,7 +333,6 @@ var handlebars = require( "handlebars" );
             return result;
         },
         exposeApp = function( app ) {
-
             var components = toArray( app.el.querySelectorAll( ATTR_TYPE ) ),
                 comps = components.map( compAttributes );
 
@@ -370,7 +366,7 @@ var handlebars = require( "handlebars" );
         registerCtrl = function( name, content ) {
             var module = _c.modules( name );
 
-            if ( _.isFunction( content ) ) {
+            if ( content.toSring() === functionType) {
                 return content.call( module );
             }
         },
@@ -551,7 +547,6 @@ var handlebars = require( "handlebars" );
                     }
                 }
             }
-            console.log( result );
             return result;
         };
 
